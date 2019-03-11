@@ -16,14 +16,23 @@ function createWindow() {
     }
   })
 
+  /*
+  mainWindow.addEventListener('keyup',
+    function (event) { console.log(' hej') }
+  );
+  */
+
   // and load the index.html of the app.
   mainWindow.loadFile('stochsd/OpenSystemDynamics/opensystemdynamics/index.html')
   //  mainWindow.loadURL('https://gmail.com')
+  mainWindow.maximize();
+
 
   // mainWindow.setSize(200, 100);
   mainWindow.setMenuBarVisibility(false)
   // Open the DevTools.
-  mainWindow.webContents.openDevTools()
+  // Can be done during runtime with ctrl+shift+I (found in the invisible menu)
+  // mainWindow.webContents.openDevTools()
 
   // Emitted when the window is closed.
   mainWindow.on('closed', function () {
