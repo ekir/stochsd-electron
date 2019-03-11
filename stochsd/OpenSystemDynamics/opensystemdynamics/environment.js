@@ -21,9 +21,6 @@ var nwjsWindow = null;
 var nwjsApp = null;
 
 class nwController {
-	static getName() {
-		return "nwjs";
-	}
 	static init() {
 		if (isRunningNwjs()) {
 			this.nwActive = true
@@ -442,6 +439,9 @@ class NwFileManager extends BaseFileManager {
 }
 
 class BaseEnvironment {
+	getName() {
+		return "base";
+	}
 	constructor() {
 		this.reloadingStarted = false;
 	}
@@ -457,7 +457,7 @@ class BaseEnvironment {
 }
 
 class WebEnvironment extends BaseEnvironment {
-	static getName() {
+	getName() {
 		return "web";
 	}
 	ready() {
@@ -482,7 +482,37 @@ class WebEnvironment extends BaseEnvironment {
 	}
 }
 
+class ElectronEnvironment extends BaseEnvironment {
+	getName() {
+		return "electron";
+	}
+	ready() {
+		return null;
+		/*
+		window.onbeforeunload = (e) => {
+			if (this.reloadingStarted) {
+				// We never want to complain if we have initialized a reload
+				// We only want to complain when the user is closing the page
+				return null;
+			}
+			if (History.unsavedChanges) {
+				return 'You have unsaved changes. Are you sure you want to quit?';
+			} else {
+				return null;
+			}
+		};
+		*/
+	}
+	getFileManager() {
+		return new WebFileManager();
+	}
+}
+
+
 class NwEnvironment extends BaseEnvironment {
+	getName() {
+		return "nwjs";
+	}
 	constructor() {
 		super()
 		nwController.init();
@@ -546,20 +576,11 @@ function isRunningNwjs() {
 
 function detectEnvironment() {
 	if (isRunningElectron()) {
-		alert("Running in electron")
-		environment = "electron"
-		return new WebEnvironment()
+		return new ElectronEnvironment()
 	}
 	else if (isRunningNwjs()) {
-		alert("Running in Nwjs")
-		environment = "nwjs"
-		// We somehow must add
-		// nwController.init();
-		// nwController.maximize();
 		return new NwEnvironment()
 	} else {
-		alert("Running in web")
-		environment = "web"
 		return new WebEnvironment()
 	}
 }
@@ -567,3 +588,5 @@ function detectEnvironment() {
 // Set global variable for environment and fileManager 
 var environment = detectEnvironment();
 var fileManager = environment.getFileManager();
+
+alert("Running in environment " + environment.getName())
