@@ -1,0 +1,510 @@
+<!--
+Copyright 2017 Erik Gustafsson. All rights reserved.
+
+This file may distributed and/or modified under the
+terms of the Insight Maker Public License (https://InsightMaker.com/impl).
+-->
+
+<!DOCTYPE html>
+
+<html>
+<head>
+	
+    <title></title>
+
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<!-- build:js opensystemdynamics.min.js  -->
+	<script type="text/javascript" src="settings.js"></script>
+	<script type="text/javascript" src="debug.js"></script>
+	<!-- environment.js determines whatever to use web or NWJS. Must be executed early to work -->
+	<script type="text/javascript" src="environment.js"></script>
+	<script type="text/javascript" src="../js/Localization.js"></script>
+	<script type="text/javascript" src="../js/Variables.js"></script>
+	<script type="text/javascript" src="../js/Utilities.js"></script>	
+	<script type="text/javascript" src="../js/API/API.js"></script>
+	<script type="text/javascript" src="../js/mxShim.js"></script>
+	<script type="text/javascript" src="../js/Sanitize.js"></script>
+	<script type="text/javascript" src="../js/Updater.js"></script>
+	<script type="text/javascript" src="../tests/ModelTests.js"></script>
+	<script type="text/javascript" src="../js/SimulationEngine/OO.js"></script>
+	<script type="text/javascript" src="../js/SimulationEngine/calc/unitsStructure.js"></script>
+	<script type="text/javascript" src="../js/SimulationEngine/calc/units.js"></script>
+	<script type="text/javascript" src="../js/SimulationEngine/SimpleCalc.js"></script>
+	<script type="text/javascript" src="../js/SimulationEngine/calc/antlr3-all-min.js"></script>
+	<script type="text/javascript" src="../js/SimulationEngine/calc/output/FormulaLexer.js"></script>
+	<script type="text/javascript" src="../js/SimulationEngine/calc/output/FormulaParser.js"></script>
+	<script type="text/javascript" src="../js/SimulationEngine/calc/rand.js"></script>
+	<script type="text/javascript" src="../js/SimulationEngine/calc/random.js"></script>
+	<script type="text/javascript" src="../js/SimulationEngine/calc/formula.js"></script>
+	<script type="text/javascript" src="../js/SimulationEngine/calc/functions.js"></script>
+	<script type="text/javascript" src="../js/SimulationEngine/Functions.js"></script>
+	<script type="text/javascript" src="../js/SimulationEngine/Classes.js"></script>
+	<script type="text/javascript" src="../js/SimulationEngine/Primitives.js"></script>
+	<script type="text/javascript" src="../js/SimulationEngine/TaskScheduler.js"></script>
+	<script type="text/javascript" src="../js/SimulationEngine/Simulator.js"></script>
+	<script type="text/javascript" src="../js/SimulationEngine/Modeler.js"></script>
+	<script type="text/javascript" src="../resources/RedBlackNode.js"></script> 
+	<script type="text/javascript" src="../resources/RedBlackTree.js"></script> 
+	<script type="text/javascript" src="../resources/graph.js"></script>
+	<script type="text/javascript" src="newAPI.js"></script>
+	<script src="makexml.js"></script>
+	<script type="text/javascript" src="imc.js"></script>
+	<script src="transform.js"></script>
+	<script src="libsvg.js"></script>
+	<script src="jquery-1.8.3.min.js"></script>
+	<script class="include" type="text/javascript" src="jquery.jqplot.1.0.9/jquery.jqplot.min.js"></script>
+	<script type="text/javascript" src="jquery.jqplot.1.0.9/plugins/jqplot.canvasTextRenderer.js"></script>
+	<script type="text/javascript" src="jquery.jqplot.1.0.9/plugins/jqplot.canvasAxisLabelRenderer.js"></script>
+
+	<script src="jquery-ui-1.12.1/jquery-ui.min.js"></script>
+	<script type="text/javascript" src="emenu.js"></script>
+	<script src="editor.js"></script>
+    <!-- endbuild -->
+
+	<style>
+		.hideUnlessNwjs {
+			display: none !important;
+		}
+		button {
+			cursor: pointer;
+			font-size: 14px;
+		}
+
+		button:hover {
+			background-color: #ccc;
+		}
+		#recent_title {
+			background-color: #ddd; 
+		}
+		svg {
+				border-width: 0px;
+		}
+		svg * {
+		  -webkit-user-select: none;  /* Chrome all / Safari all */
+		  -moz-user-select: none;     /* Firefox all */
+		  -ms-user-select: none;      /* IE 10+ */
+		  user-select: none;          /* Likely future */
+		}
+
+		@media print
+		{    
+			#topPanel
+			{
+				display: none !important;
+			}
+		}
+		body {
+			overflow:hidden;
+		}
+		.toolBoxSeparator {
+			display: inline-block;
+			width: 12px;
+			/*width: 20px;*/
+		}
+		button.pressed {
+			background-color: #777;
+		}
+		.toolButton {
+			padding: 0px;
+			margin: 0px;
+			
+			width: 30px;
+			height:  30px;
+
+			/*
+			width: 40px;
+			height:  40px;
+			*/
+		}
+		.toolSupplement {
+			padding: 0px;
+			margin: 0px;
+			
+			width: 30px;
+			height:  30px;
+			display: inline-block;
+			vertical-align: text-bottom;
+		}
+		button svg {
+			border-width: 0px;
+		}
+		.fileToolBox {
+			margin-bottom: 5px;
+		}
+		table {
+			border-collapse: collapse;
+			border: 1px solid black;
+		}
+		td.text {
+			text-align: left;		
+		}
+		td,th {
+			border: 1px solid black;
+		}
+		td {
+			text-align: right;			
+		}
+		input[type="text"] {
+			width: 50px;
+			text-align: right;
+		}
+		input[type="text"].textInput {
+			text-align: left !important;
+		}
+		/* Overlays */
+		.ui-widget-overlay {
+			background: #000000;
+			opacity: 0.3 !important;
+		}
+		button.toolButton img {
+			width: 100%; height: 100%; display: inline
+		}
+		.primitiveSettings .nameField, .primitiveSettings .valueField {
+			width: 200px;
+		}
+		.accordion div {
+			width: 200px;
+		}
+		
+		.table{
+		  display: table;
+		  width:100%;
+		}
+		  .table-row{
+			display: table-row;
+		  }
+		.table-cell {
+		  display: table-cell;
+		  padding:2px;
+		  /*border: black 1px solid;*/ /*Turn on for debuggning */
+		}
+		.accordionCluster div {
+			width: 300px;
+		}
+		h3.equationListHeader {
+			margin: 5px 0px 0px 0px;
+		}
+		
+		.accordionCluster ul {
+			padding: 0px;
+			margin: 0px;
+		}
+		
+		.ui-accordion-content {
+			padding-top: 20px !important;
+			padding-bottom: 20px !important;
+		}
+		.functionHelp {
+			color: black;
+		}
+		.functionHelp:hover {
+			color: black;
+			text-shadow:0px 0px 1px black;
+		}
+		.linkedReference {
+			color: black;
+		}
+		.linkedReference:hover {
+			color: black;
+			text-shadow:0px 0px 1px black;
+		}
+		.macroText {
+			width: 600px;
+			height: 400px;
+		}
+	</style>
+
+
+	<!-- build:css opensystemdynamics.css  -->
+	<link class="include" rel="stylesheet" type="text/css" href="jquery.jqplot.1.0.9/jquery.jqplot.min.css" />
+	<link rel="stylesheet" href="jquery-ui-1.12.1/jquery-ui.css">
+	<link rel="stylesheet" href="emenu.css">
+	<!-- endbuild -->
+	
+
+	</head>
+	<body>
+			<div id="coverEverythingDiv" style="position: absolute; left: 0px; top: 0px; width: 1100px; height: 900px; background-color: white;z-index:6;">
+	<div id="topPanel"> <!-- This panel is hidden when printing-->
+		<div class="fileToolBox">
+			<div class="eMenu">
+			  <button class="menuButton" id="btn_file">File</button>
+			  <div class="menuContent">
+				<span>
+					<button id="btn_new">New</button>	
+				</span>
+				<span>
+					<button id="btn_load"><u>O</u>pen (Ctrl O)</button>
+				</span>
+				<span>
+					<button id="btn_save"><u>S</u>ave (Ctrl S)</button>
+				</span>
+				<span>
+					<button id="btn_save_as" style="display: none;">Save As...</button>
+				</span>
+				<span id="recent_title" style="display: none">
+					<br/>
+				</span>
+				<span>
+					<button id="btn_recent_0" style="display: none;">Recent 0</button>
+				</span>
+				<span>
+					<button id="btn_recent_1" style="display: none;">Recent 1</button>
+				</span>
+				<span>
+					<button id="btn_recent_2" style="display: none;">Recent 2</button>
+				</span>
+				<span>
+					<button id="btn_recent_3" style="display: none;">Recent 3</button>
+				</span>
+				<span>
+					<button id="btn_recent_4" style="display: none;">Recent 4</button>
+				</span>
+			  </div>
+			</div>
+			
+			<div class="eMenu hideUnlessNwjs">
+			  <button class="menuButton">View</button>
+			  <div class="menuContent">
+				<span>
+					<button id="btn_zoom_in">Zoom In (Ctrl +)</span></button>
+				</span>
+				<span>
+					<button id="btn_zoom_out">Zoom Out (Ctrl -)</button>
+				</span>
+				<span>
+					<button id="btn_zoom_reset">Reset Zoom (Ctrl 0)</button>
+				</span>
+			  </div>
+			</div>
+			
+			<div class="eMenu">
+			  <button class="menuButton">Print</button>
+			  <div class="menuContent">
+				<span>
+					<button id="btn_print_model">Print Diagram</button>
+				</span>
+				<span>
+					<button id="btn_equation_list">Print Equations</button>
+				</span>
+			  </div>
+			</div>
+		<button id="btn_simulation_settings">Simulation Settings</button>
+		<button id="btn_macro">Macros</button>
+				
+		<div class="eMenu">
+			<button class="menuButton">Colour</button>
+			<div class="menuContent">
+				<span>
+					<button id="btn_black" style="color: black">Black</button>
+				</span>
+				<span>
+					<button id="btn_lightgrey" style="color: grey">Grey</button>
+				</span>
+				<span>
+					<button id="btn_red" style="color: red">Red</button>
+				</span>
+				<span>
+					<button id="btn_deeppink" style="color: deeppink">Pink</button>
+				</span>
+				<span>
+						<button id="btn_brown" style="color: brown">Brown</button>
+				</span>
+				<span>
+					<button id="btn_orange" style="color: orange">Orange</button>
+				</span>
+				<span>
+					<button id="btn_gold" style="color: gold">Gold</button>
+				</span>
+				<span>
+						<button id="btn_olive" style="color: olive">Olive</button>
+				</span>
+				<span>
+					<button id="btn_green" style="color: green">Green</button>
+				</span>
+				<span>
+					<button id="btn_teal" style="color: teal">Teal</button>
+				</span>
+				<span>
+					<button id="btn_blue" style="color: blue">Blue</button>
+				</span>
+				<span>
+						<button id="btn_magenta" style="color: magenta">Magenta</button>
+				</span>
+			</div>
+		</div>
+
+			<div style="display: none;" class="eMenu pluginMenu">
+			  <button class="menuButton">Tools</button>
+			  <div class="menuContent">
+				<span>
+					<button class="btn_load_plugin" data-plugin-name="optim">Optim</button>	
+				</span>
+				<span>
+					<button class="btn_load_plugin" data-plugin-name="sensi">Sensi</button>
+				</span>
+				<span>
+					<button class="btn_load_plugin" data-plugin-name="stocres">StatRes</button>
+				</span>
+				<span>
+					<button class="btn_load_plugin" data-plugin-name="parmest">ParmVar</button>
+				</span>
+				<span>
+					<button class="btn_load_plugin" data-plugin-name="none">Hide</button>	
+				</span>
+			  </div>
+			</div>
+
+			<div class="eMenu">
+			  <button class="menuButton">Help</button>
+			  <div class="menuContent">
+				<span>
+					<button id="btn_about">About</button>	
+				</span>
+				<span>
+					<a target="_blank" href="./../docs/StochSim_User_Manual.pdf"><button id="btn_manual">
+						User's Manual
+					</button></a>
+					<a target="_blank" href="./../docs/StochSim_Optim.pdf"><button>
+						Optim Manual
+					</button></a>
+					<a target="_blank" href="./../docs/StochSim_Sensi.pdf"><button>
+						Sensi Manual
+					</button></a>
+					<a target="_blank" href="./../docs/StochSim_StatRes.pdf"><button>
+						StatRes Manual
+					</button></a>
+					<a target="_blank" href="./../docs/StochSim_ParmVar.pdf"><button>
+						ParmVar Manual
+					</button></a>
+				</span>
+				<span>
+					<button id="btn_debug" style="display: none;">Debug Log</button>
+				</span>
+				<span>
+					<button id="btn_restart">Restart and Clear Model</button>
+				</span>
+				
+				<span style=>
+					<button id="btn_preserve_restart">Restart and Keep Model</button>
+				</span>
+			  </div>
+			</div>
+		</div>
+		
+		</div> <!-- End of topPanel -->
+		
+		<div class="toolPanel" style="margin-top: 12px"> <!--toolPanel-->
+			<button id="btn_mouse" title="Mouse" class="toolButton" data-tool="mouse">
+				<img src="graphics/mouse.svg"/>
+			</button>
+			<button id="btn_delete" title="Delete" class="toolButton" data-tool="delete">
+				<img src="graphics/delete.svg"/>
+			</button>
+			<button id="btn_undo" title="Undo" class="toolButton" data-tool="undo">
+				<img src="graphics/undo.svg"/>
+			</button>
+			<button id="btn_redo" title="Redo" class="toolButton" data-tool="redo">
+				<img src="graphics/redo.svg"/>
+			</button>
+			<div class="toolBoxSeparator">
+			</div>
+			<button id="btn_stock" title="Stock" class="toolButton" data-tool="stock">
+				<img src="graphics/stock.svg"/>
+			</button>
+			<button id="btn_variable" title="Variable" class="toolButton" data-tool="variable">
+				<img src="graphics/variable.svg"/>
+			</button>
+			<button id="btn_constant" title="Constant" class="toolButton" data-tool="constant">
+				<img src="graphics/constant.svg"/>
+			</button>
+			<button id="btn_converter" title="Converter" class="toolButton" data-tool="converter">
+				<img src="graphics/converter.svg"/>
+			</button>
+			<button id="btn_flow" title="Flow" class="toolButton" data-tool="flow">
+				<img src="graphics/flow.svg"/>
+			</button>
+			<button id="btn_link" title="Link" class="toolButton" data-tool="link">
+				<img src="graphics/link.svg"/>
+			</button>
+			<button id="btn_ghost" title="Ghost" class="toolButton" data-tool="ghost">
+				<img src="graphics/ghost.svg"/>
+			</button>
+			<div class="toolBoxSeparator">
+			</div>
+			<button id="btn_rotatename" title="Rotate Name" class="toolButton" data-tool="rotatename">
+				<img src="graphics/rotate_name.svg"/>
+			</button>
+			<button id="btn_movevalve" title="Move Valve" class="toolButton" data-tool="movevalve">
+				<img src="graphics/move_valve.svg">
+			</button>
+			<button id="btn_straighten_link" title="Straighten Link" class="toolButton" data-tool="straightenlink">
+					<img src="graphics/straighten_link.svg">
+				</button>
+			<button id="btn_text" title="Text" class="toolButton" data-tool="text">
+				<img src="graphics/text.svg"/>
+			</button>
+			<button id="btn_rectangle" title="Frame" class="toolButton" data-tool="rectangle">
+				<img src="graphics/rectangle.svg"/>
+			</button>
+			<button id="btn_line" title="Line" class="toolButton" data-tool="line">
+				<img src="graphics/line.svg"/>
+			</button>
+			<div class="toolBoxSeparator">
+			</div>
+			<button id="btn_numberbox" title="Number Box" class="toolButton" data-tool="numberbox">
+				<img src="graphics/numberbox.svg"/>
+			</button>
+			<button id="btn_table" title="Table" class="toolButton" data-tool="table">
+				<img src="graphics/table.svg"/>
+			</button>
+			<button id="btn_diagram" title="Time Diagram" class="toolButton" data-tool="diagram">
+				<img src="graphics/diagram.svg"/>
+			</button>
+			<button id="btn_xyplot" title="XY-Plot" class="toolButton" data-tool="xyplot">
+				<img src="graphics/xyplot.svg"/>
+			</button>
+			<div class="toolBoxSeparator">
+			</div>
+			<div id="runControllerArea" style="display: inline-block;">
+				<button id="btn_run" title="Run/Halt (Ctrl 1)" class="toolButton" data-tool="run">
+					<img id="imgRunPauseTool" src="graphics/run.svg"/>
+				</button>
+				<button id="btn_step" title="Step (Ctrl 2)" class="toolButton" data-tool="step">
+					<img src="graphics/step.svg"/>
+				</button>
+				<button style="display: none" id="btn_clearrun" title="Clear run" class="toolButton" data-tool="clearrun">
+					<img src="graphics/clearrun.svg"/>
+				</button>
+				<button id="btn_reset" title="Reset (Ctrl 3)" class="toolButton" data-tool="reset">
+					<img src="graphics/reset.svg"/>
+				</button>
+				<div id="runStatusBarOuter" class="toolSupplement" style="display: inline-block; background: #F0F0F0; width: 98px" >
+					<div id="runStatusBar" class="toolSupplement" style="position: relative; left: 0px; top: 0px; background: #aaeeaa; height: 30px; width: 0px; margin: 0; padding: 0; border: 0;">
+						<div id="runStatusBarText" title="Current Time / End Time (Step Time)" style="text-align: center; width: 98px; font-size: 16px; padding-top: 6px; height: 30px;">
+							0
+						</div>
+					</div>
+				</div>
+			</div> <!-- End of runControllArea -->
+		</div> <!-- End of toolPanel-->
+
+		<div id="infoBar" style="margin: 6px; font-size: 16px; font-family: Arial, Helvetica, sans-serif;">
+			----  
+		</div>
+
+        <!-- Working area -->
+		<div id="svgplanebackground" style="overflow: scroll; border-width: 1px; border-color: black; border-style: solid; position: absolute; z-index: 3; width: 1024px; height: 768px; display: inline-block; font-family: Arial, Helvetica, sans-serif">
+			<div id="svgBlockOverlay" style="position: absolute; left: 0px; top: 0px; display: none; z-index: 110; width: 100%; height: 100%; background-color: red; opacity: 0;">
+			</div>
+			<svg draggable="false" id="svgplane" width="2000" height="1379" style="position: absolute; left: 0px; top: 0px; z-index: 2; display: inline-block;	vertical-align: text-top; background-color: white;">
+			</svg>
+		</div>
+
+	
+	
+
+
+	</div>
+</body>
+</html>
