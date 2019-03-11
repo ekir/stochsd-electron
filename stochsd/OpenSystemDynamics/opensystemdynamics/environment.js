@@ -21,21 +21,18 @@ var nwjsWindow = null;
 var nwjsApp = null;
 
 class nwController {
+	static getName() {
+		return "nwjs";
+	}
 	static init() {
-		this.nwActive = null;
-		/*
-		if (typeof require === "undefined") {
-			this.nwActive = false;
-		} else {
-			this.nwActive = true;
-			this.maximize = this.unsafeNwMaximize;
-			this.getWindow = this.unsafeGetWindow;
-			this.getParams = this.unsafeGetParams;
-			this.ready = this.unsafeReady;
-			this.openFile = this.unsafeOpenFile;
+		if (isRunningNwjs()) {
+			this.nwActive = true
+			this.maximize = this.unsafeNwMaximize
+			this.getWindow = this.unsafeGetWindow
+			this.getParams = this.unsafeGetParams
+			this.ready = this.unsafeReady
+			this.openFile = this.unsafeOpenFile
 		}
-		*/
-		this.nwActive = false;
 	}
 	static ready() {
 		// This is replaced in init if NW is running		
@@ -61,9 +58,6 @@ class nwController {
 		nwin.on("close", function (event) {
 			quitQuestion();
 		});
-	}
-	static isNwActive() {
-		return this.nwActive;
 	}
 	static getWindow() {
 		// This is replaced in init if NW is running
@@ -105,8 +99,6 @@ class nwController {
 		nwjsGui.Shell.openItem(fileName);
 	}
 }
-nwController.init();
-nwController.maximize();
 
 class NwZoomController {
 	static init() {
@@ -465,6 +457,9 @@ class BaseEnvironment {
 }
 
 class WebEnvironment extends BaseEnvironment {
+	static getName() {
+		return "web";
+	}
 	ready() {
 		return null;
 		/*
@@ -488,6 +483,11 @@ class WebEnvironment extends BaseEnvironment {
 }
 
 class NwEnvironment extends BaseEnvironment {
+	constructor() {
+		super()
+		nwController.init();
+		nwController.maximize();
+	}
 	ready() {
 		$("#btn_zoom_in").click(function () {
 			NwZoomController.zoomIn();
@@ -525,18 +525,43 @@ class NwEnvironment extends BaseEnvironment {
 	}
 }
 
-function detectEnvironment() {
-	return new WebEnvironment();
-	/*
-	// Check if we run in node-webkit or in a browser 
-	if (nwController.isNwActive()) {
-		console.log("NW is active")
-		return new NwEnvironment();
-	} else {
-		console.log("NW is not active")
-		return new WebEnvironment();
+function isRunningElectron() {
+	// https://github.com/electron/electron/issues/2288
+	if (typeof process !== "undefined") {
+		if (typeof process.versions['electron'] !== "undefined") {
+			return true;
+		}
 	}
-	*/
+	return false;
+}
+
+function isRunningNwjs() {
+	// https://stackoverflow.com/questions/31968355/detect-if-web-app-is-running-in-nwjs
+	try {
+		return (typeof require('nw.gui') !== "undefined");
+	} catch (e) {
+		return false;
+	}
+}
+
+function detectEnvironment() {
+	if (isRunningElectron()) {
+		alert("Running in electron")
+		environment = "electron"
+		return new WebEnvironment()
+	}
+	else if (isRunningNwjs()) {
+		alert("Running in Nwjs")
+		environment = "nwjs"
+		// We somehow must add
+		// nwController.init();
+		// nwController.maximize();
+		return new NwEnvironment()
+	} else {
+		alert("Running in web")
+		environment = "web"
+		return new WebEnvironment()
+	}
 }
 
 // Set global variable for environment and fileManager 
