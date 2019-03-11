@@ -466,6 +466,8 @@ class BaseEnvironment {
 
 class WebEnvironment extends BaseEnvironment {
 	ready() {
+		return null;
+		/*
 		window.onbeforeunload = (e) => {
 			if (this.reloadingStarted) {
 				// We never want to complain if we have initialized a reload
@@ -478,6 +480,7 @@ class WebEnvironment extends BaseEnvironment {
 				return null;
 			}
 		};
+		*/
 	}
 	getFileManager() {
 		return new WebFileManager();
@@ -523,6 +526,8 @@ class NwEnvironment extends BaseEnvironment {
 }
 
 function detectEnvironment() {
+	return new WebEnvironment();
+	/*
 	// Check if we run in node-webkit or in a browser 
 	if (nwController.isNwActive()) {
 		console.log("NW is active")
@@ -531,6 +536,7 @@ function detectEnvironment() {
 		console.log("NW is not active")
 		return new WebEnvironment();
 	}
+	*/
 }
 
 // Set global variable for environment and fileManager 
