@@ -346,31 +346,35 @@ class ElectronFileManager extends BaseFileManager {
 		});
 	}
 	saveModel() {
-
+		do_global_log("Electron: save model triggered");
+		if (this.fileName == "") {
+			this.saveModelAs();
+			return;
+		}
+		this.doSaveModel(this.fileName)
 	}
 	saveModelAs() {
 		const { dialog } = require('electron').remote
 		let filename = dialog.showSaveDialog()
 		console.log("save filename", filename)
 		if (filename) {
-			alert("trying to save file " + filename)
+			this.fileName = this.appendFileExtension(filename, InsightMakerFileExtension)
+			this.doSaveModel(this.fileName)
 		}
-
-		this.fileName = this.appendFileExtension(filename, InsightMakerFileExtension);
-		let fileData = createModelFileData();
-		this.writeFile(this.fileName, fileData);
-
-		// adds to file localStorage.recentFiles list
-		this.addToRecent(this.fileName);
-
-		this.updateSaveTime();
-		this.updateTitle();
-		/* What does this do here?
+		/* Should we implement this here?
 		if (this.finishedSaveHandler) {
 			this.finishedSaveHandler();
 		}
 		*/
 	}
+	doSaveModel(fileName) {
+		let fileData = createModelFileData();
+		this.writeFile(this.fileName, fileData);
+		this.updateSaveTime();
+		this.updateTitle();
+		this.addToRecent(this.fileName);
+	}
+
 	loadModel() {
 		do_global_log("Electron: load model");
 		const { dialog } = require('electron').remote
