@@ -34,6 +34,7 @@ function createWindow() {
   // Can be done during runtime with ctrl+shift+I (found in the invisible menu)
   // mainWindow.webContents.openDevTools()
 
+  /*
   // Emitted when the window is closed.
   mainWindow.on('closed', function () {
     // Dereference the window object, usually you would store windows
@@ -42,6 +43,7 @@ function createWindow() {
     console.log("close event")
     mainWindow = null
   })
+  */
 }
 
 // This method will be called when Electron has finished
@@ -49,6 +51,7 @@ function createWindow() {
 // Some APIs can only be used after this event occurs.
 app.on('ready', createWindow)
 
+/*
 // Quit when all windows are closed.
 app.on('window-all-closed', function () {
   // On macOS it is common for applications and their menu bar
@@ -57,6 +60,7 @@ app.on('window-all-closed', function () {
     app.quit()
   }
 })
+*/
 
 app.on('activate', function () {
   // On macOS it's common to re-create a window in the app when the

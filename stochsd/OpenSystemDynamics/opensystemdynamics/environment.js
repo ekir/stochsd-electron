@@ -21,6 +21,9 @@ var nwjsWindow = null;
 var nwjsApp = null;
 
 
+function testfunction() {
+	alert("test function")
+}
 
 
 
@@ -569,6 +572,9 @@ class BaseEnvironment {
 	getFileManager() {
 		// Override this
 	}
+	closeWindow() {
+		// Override this
+	}
 }
 
 class WebEnvironment extends BaseEnvironment {
@@ -602,6 +608,38 @@ class ElectronEnvironment extends BaseEnvironment {
 		return "electron";
 	}
 	ready() {
+		console.log("attaching event handler")
+		// Emitted when the window is closed.
+
+		window.onbeforeunload = function (e) {
+			console.log("Attempting close")
+			if (typeof window['forceQuit'] !== 'undefined') {
+				console.log("choosing true")
+				return true
+			} else {
+				console.log("choosing false")
+				quitQuestion()
+				return false
+			}
+		}
+		/*
+		// this.getWindow().on('closed', testfunction)
+		this.getWindow().on("beforeunload", function (e) {
+			e.preventDefault();
+			alert('cool');
+		}
+		*/
+
+		/*
+		this.getWindow().on('closed', function () {
+			// Dereference the window object, usually you would store windows
+			// in an array if your app supports multi windows, this is the time
+			// when you should delete the corresponding element.
+			//alert("closing handler")
+			//mainWindow = null
+		})
+		*/
+
 		return null;
 		/*
 		window.onbeforeunload = (e) => {
@@ -620,6 +658,14 @@ class ElectronEnvironment extends BaseEnvironment {
 	}
 	getFileManager() {
 		return new ElectronFileManager();
+	}
+	closeWindow() {
+		window['forceQuit'] = true
+		this.getWindow().close()
+	}
+	getWindow() {
+		const remote = require('electron').remote
+		return remote.getCurrentWindow()
 	}
 }
 
@@ -667,6 +713,10 @@ class NwEnvironment extends BaseEnvironment {
 	}
 	getFileManager() {
 		return new NwFileManager();
+	}
+	closeWindow() {
+		alert("closing nwjs window")
+		nwjsWindow.close(true);
 	}
 }
 
