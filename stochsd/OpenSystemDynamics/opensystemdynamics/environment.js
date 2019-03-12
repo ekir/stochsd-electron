@@ -292,6 +292,64 @@ class WebFileManager extends BaseFileManager {
 		});
 	}
 }
+
+class ElectronFileManager extends BaseFileManager {
+	constructor() {
+		super();
+		this.softwareName = "StochSim Desktop";
+	}
+
+	// This is executed when the document is ready
+	ready() {
+		super.ready();
+	}
+	hasSaveAs() {
+		return true;
+	}
+	hasRecentFiles() {
+		return true;
+	}
+	addToRecent(filePath) {
+
+	}
+	writeFile(fileName, FileData) {
+
+	}
+	saveModel() {
+
+	}
+	saveModelAs() {
+
+	}
+	loadModel() {
+		do_global_log("Electron: load model");
+		const { dialog } = require('electron').remote
+		console.log("dialog ", dialog)
+		let filenameArray = dialog.showOpenDialog({ properties: ['openFile'] })
+		console.log("filenameArray", filenameArray)
+		if (filenameArray.length > 0) {
+			this.loadFromFile(filenameArray[0])
+		}
+	}
+	loadFromFile(fileName) {
+		var fs = require('fs')
+		var resolve = require('path').resolve;
+		var absoluteFileName = resolve(fileName);
+
+
+		fs.readFile(fileName, 'utf8', (err, data) => {
+			if (err) {
+				return console.error(err);
+			}
+			console.error(fs);
+			this.fileName = absoluteFileName;
+			this.loadModelData(data);
+			this.updateTitle();
+			this.addToRecent(this.fileName);
+		});
+	}
+}
+
 class NwFileManager extends BaseFileManager {
 	constructor() {
 		super();
@@ -302,6 +360,11 @@ class NwFileManager extends BaseFileManager {
 	ready() {
 		super.ready();
 		// Prepare model loader
+
+		const { dialog } = require('electron').remote
+		console.log("dialog ", dialog)
+		alert(dialog.showSaveDialog({ properties: ['openFile', 'openDirectory', 'multiSelections'] }))
+
 		this.modelLoaderInput = document.body.appendChild(document.createElement("input"));
 		this.modelLoaderInput.className = "modelLoaderInput";
 		this.modelLoaderInput.addEventListener('change', (event) => {
@@ -506,7 +569,7 @@ class ElectronEnvironment extends BaseEnvironment {
 		*/
 	}
 	getFileManager() {
-		return new NwFileManager();
+		return new ElectronFileManager();
 	}
 }
 
