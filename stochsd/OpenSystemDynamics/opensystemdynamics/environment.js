@@ -20,11 +20,9 @@ var nwjsGui = null;
 var nwjsWindow = null;
 var nwjsApp = null;
 
-class NodeHelper {
-	static loadModelFile() {
 
-	}
-}
+
+
 
 class nwController {
 	static init() {
