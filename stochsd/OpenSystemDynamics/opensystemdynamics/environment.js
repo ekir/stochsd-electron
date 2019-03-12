@@ -20,6 +20,8 @@ var nwjsGui = null;
 var nwjsWindow = null;
 var nwjsApp = null;
 
+
+
 class nwController {
 	static init() {
 		if (isRunningNwjs()) {
@@ -504,7 +506,7 @@ class ElectronEnvironment extends BaseEnvironment {
 		*/
 	}
 	getFileManager() {
-		return new WebFileManager();
+		return new NwFileManager();
 	}
 }
 
