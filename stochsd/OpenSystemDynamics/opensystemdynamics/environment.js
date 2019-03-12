@@ -20,7 +20,11 @@ var nwjsGui = null;
 var nwjsWindow = null;
 var nwjsApp = null;
 
+class NodeHelper {
+	static loadModelFile() {
 
+	}
+}
 
 class nwController {
 	static init() {
@@ -313,13 +317,33 @@ class ElectronFileManager extends BaseFileManager {
 
 	}
 	writeFile(fileName, FileData) {
-
+		do_global_log("NW: In write file");
+		//~ if(self.fileName == null) {
+		//~ self.saveModelAs();
+		//~ return;
+		//~ }
+		let fs = require('fs');
+		fs.writeFile(fileName, FileData, function (err) {
+			do_global_log("NW: in write file callback");
+			if (err) {
+				do_global_log("NW: Error in write file callback");
+				console.error(err);
+				alert("Error in file saving " + getStackTrace());
+			}
+			do_global_log("NW: Success in write file callback");
+			History.unsavedChanges = false;
+		});
 	}
 	saveModel() {
 
 	}
 	saveModelAs() {
-
+		const { dialog } = require('electron').remote
+		let filename = dialog.showSaveDialog()
+		console.log("save filename", filename)
+		if (filename) {
+			alert("trying to save file " + filename)
+		}
 	}
 	loadModel() {
 		do_global_log("Electron: load model");
