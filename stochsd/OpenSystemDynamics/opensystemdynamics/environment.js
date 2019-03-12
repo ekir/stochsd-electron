@@ -411,10 +411,6 @@ class NwFileManager extends BaseFileManager {
 		super.ready();
 		// Prepare model loader
 
-		const { dialog } = require('electron').remote
-		console.log("dialog ", dialog)
-		alert(dialog.showSaveDialog({ properties: ['openFile', 'openDirectory', 'multiSelections'] }))
-
 		this.modelLoaderInput = document.body.appendChild(document.createElement("input"));
 		this.modelLoaderInput.className = "modelLoaderInput";
 		this.modelLoaderInput.addEventListener('change', (event) => {
