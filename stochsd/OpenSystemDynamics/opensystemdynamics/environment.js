@@ -344,6 +344,21 @@ class ElectronFileManager extends BaseFileManager {
 		if (filename) {
 			alert("trying to save file " + filename)
 		}
+
+		this.fileName = this.appendFileExtension(filename, InsightMakerFileExtension);
+		let fileData = createModelFileData();
+		this.writeFile(this.fileName, fileData);
+
+		// adds to file localStorage.recentFiles list
+		this.addToRecent(this.fileName);
+
+		this.updateSaveTime();
+		this.updateTitle();
+		/* What does this do here?
+		if (this.finishedSaveHandler) {
+			this.finishedSaveHandler();
+		}
+		*/
 	}
 	loadModel() {
 		do_global_log("Electron: load model");
