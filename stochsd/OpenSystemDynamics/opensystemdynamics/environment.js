@@ -364,11 +364,9 @@ class ElectronFileManager extends BaseFileManager {
 			this.fileName = this.appendFileExtension(filename, InsightMakerFileExtension)
 			this.doSaveModel(this.fileName)
 		}
-		/* Should we implement this here?
 		if (this.finishedSaveHandler) {
 			this.finishedSaveHandler();
 		}
-		*/
 	}
 	doSaveModel(fileName) {
 		let fileData = createModelFileData();
@@ -608,23 +606,30 @@ class ElectronEnvironment extends BaseEnvironment {
 		return "electron";
 	}
 	ready() {
-		console.log("attaching event handler")
-		// Emitted when the window is closed.
-
-		window.onbeforeunload = function (e) {
-			console.log("Attempting close")
-			if (typeof window['forceQuit'] !== 'undefined') {
-				console.log("choosing true")
-				return true
-			} else {
-				console.log("choosing false")
-				quitQuestion()
-				return false
-			}
+		/*
+		twindow = environment.getWindow()
+		console.log("windo", twindow)
+		twindow.onbeforeunload = function (e) {
+			alert("hej")
+			var result = confirm("hejsan")
 		}
+		window.on("close", function () {
+			alert("clos")
+		*/
+
+		environment.getWindow().on("beforeunload", function (e) {
+			e.preventDefault();
+			alert('cool');
+		})
+
+		const { ipcRenderer } = require('electron')
+		ipcRenderer.on('try-to-close-message', (event, arg) => {
+			quitQuestion()
+		})
+
 		/*
 		// this.getWindow().on('closed', testfunction)
-		this.getWindow().on("beforeunload", function (e) {
+		environment.getWindow().on("beforeunload", function (e) {
 			e.preventDefault();
 			alert('cool');
 		}
@@ -660,8 +665,8 @@ class ElectronEnvironment extends BaseEnvironment {
 		return new ElectronFileManager();
 	}
 	closeWindow() {
-		window['forceQuit'] = true
-		this.getWindow().close()
+		const { ipcRenderer } = require('electron')
+		ipcRenderer.send('destroy-message', 'ping')
 	}
 	getWindow() {
 		const remote = require('electron').remote

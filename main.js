@@ -27,6 +27,14 @@ function createWindow() {
   //  mainWindow.loadURL('https://gmail.com')
   mainWindow.maximize();
 
+  console.log(mainWindow)
+  let force_quit = false
+  const { ipcMain } = require('electron')
+  ipcMain.on('destroy-message', (event, arg) => {
+    console.log(" hej hej  " + arg) // prints "ping"
+    force_quit = true
+    mainWindow.destroy()
+  })
 
   // mainWindow.setSize(200, 100);
   mainWindow.setMenuBarVisibility(false)
@@ -34,16 +42,29 @@ function createWindow() {
   // Can be done during runtime with ctrl+shift+I (found in the invisible menu)
   // mainWindow.webContents.openDevTools()
 
-  /*
+
+
+
+  console.log(ipcMain)
+  // Continue to handle mainWindow "close" event here
+  mainWindow.on('close', function (e) {
+    mainWindow.webContents.send("try-to-close-message", 'ping')
+    if (!force_quit) {
+      console.log("prevent default")
+      e.preventDefault();
+    }
+  })
+
   // Emitted when the window is closed.
   mainWindow.on('closed', function () {
     // Dereference the window object, usually you would store windows
     // in an array if your app supports multi windows, this is the time
     // when you should delete the corresponding element.
-    console.log("close event")
+    console.log("clos eventmain")
     mainWindow = null
   })
-  */
+
+
 }
 
 // This method will be called when Electron has finished
