@@ -19,18 +19,30 @@ function createWindow() {
   // and load the index.html of the app.
   mainWindow.loadFile('stochsd/OpenSystemDynamics/opensystemdynamics/index.html')
   //  mainWindow.loadURL('https://gmail.com')
+  mainWindow.maximize();
+
 
   // mainWindow.setSize(200, 100);
   mainWindow.setMenuBarVisibility(false)
   // Open the DevTools.
-  mainWindow.webContents.openDevTools()
+  // Can be done during runtime with ctrl+shift+I (found in the invisible menu)
+  // mainWindow.webContents.openDevTools()
+
+  const { ipcMain } = require('electron')
+  ipcMain.on('destroy-message', (event, arg) => {
+    mainWindow.destroy()
+  })
+  mainWindow.on('close', function (e) {
+    // Notify render process that user tried to close the window
+    mainWindow.webContents.send("try-to-close-message", 'ping')
+    e.preventDefault();
+  })
 
   // Emitted when the window is closed.
   mainWindow.on('closed', function () {
     // Dereference the window object, usually you would store windows
     // in an array if your app supports multi windows, this is the time
     // when you should delete the corresponding element.
-    console.log("close event")
     mainWindow = null
   })
 }

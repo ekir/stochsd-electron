@@ -20,22 +20,20 @@ var nwjsGui = null;
 var nwjsWindow = null;
 var nwjsApp = null;
 
+
+
+
+
 class nwController {
 	static init() {
-		this.nwActive = null;
-		/*
-		if (typeof require === "undefined") {
-			this.nwActive = false;
-		} else {
-			this.nwActive = true;
-			this.maximize = this.unsafeNwMaximize;
-			this.getWindow = this.unsafeGetWindow;
-			this.getParams = this.unsafeGetParams;
-			this.ready = this.unsafeReady;
-			this.openFile = this.unsafeOpenFile;
+		if (isRunningNwjs()) {
+			this.nwActive = true
+			this.maximize = this.unsafeNwMaximize
+			this.getWindow = this.unsafeGetWindow
+			this.getParams = this.unsafeGetParams
+			this.ready = this.unsafeReady
+			this.openFile = this.unsafeOpenFile
 		}
-		*/
-		this.nwActive = false;
 	}
 	static ready() {
 		// This is replaced in init if NW is running		
@@ -61,9 +59,6 @@ class nwController {
 		nwin.on("close", function (event) {
 			quitQuestion();
 		});
-	}
-	static isNwActive() {
-		return this.nwActive;
 	}
 	static getWindow() {
 		// This is replaced in init if NW is running
@@ -105,8 +100,6 @@ class nwController {
 		nwjsGui.Shell.openItem(fileName);
 	}
 }
-nwController.init();
-nwController.maximize();
 
 class NwZoomController {
 	static init() {
@@ -301,6 +294,114 @@ class WebFileManager extends BaseFileManager {
 		});
 	}
 }
+
+class ElectronFileManager extends BaseFileManager {
+	constructor() {
+		super();
+		this.softwareName = "StochSim Desktop";
+	}
+
+	// This is executed when the document is ready
+	ready() {
+		super.ready();
+	}
+	hasSaveAs() {
+		return true;
+	}
+	hasRecentFiles() {
+		return true;
+	}
+	addToRecent(filePath) {
+		let limit = 5;
+		let recentFiles = [];
+		if (localStorage.recentFiles) {
+			recentFiles = JSON.parse(localStorage.recentFiles);
+		}
+		if (recentFiles.includes(filePath)) {
+			let index = recentFiles.indexOf(filePath);
+			recentFiles.splice(index, 1);
+		}
+		if (recentFiles.length <= limit) {
+			recentFiles.splice(limit - 1);
+		}
+		recentFiles.unshift(filePath);
+		localStorage.setItem("recentFiles", JSON.stringify(recentFiles));
+	}
+	writeFile(fileName, FileData) {
+		do_global_log("NW: In write file");
+		//~ if(self.fileName == null) {
+		//~ self.saveModelAs();
+		//~ return;
+		//~ }
+		let fs = require('fs');
+		fs.writeFile(fileName, FileData, function (err) {
+			do_global_log("NW: in write file callback");
+			if (err) {
+				do_global_log("NW: Error in write file callback");
+				console.error(err);
+				alert("Error in file saving " + getStackTrace());
+			}
+			do_global_log("NW: Success in write file callback");
+			History.unsavedChanges = false;
+		});
+	}
+	saveModel() {
+		do_global_log("Electron: save model triggered");
+		if (this.fileName == "") {
+			this.saveModelAs();
+			return;
+		}
+		this.doSaveModel(this.fileName)
+	}
+	saveModelAs() {
+		const { dialog } = require('electron').remote
+		let filename = dialog.showSaveDialog()
+		console.log("save filename", filename)
+		if (filename) {
+			this.fileName = this.appendFileExtension(filename, InsightMakerFileExtension)
+			this.doSaveModel(this.fileName)
+		}
+		if (this.finishedSaveHandler) {
+			this.finishedSaveHandler();
+		}
+	}
+	doSaveModel(fileName) {
+		let fileData = createModelFileData();
+		this.writeFile(this.fileName, fileData);
+		this.updateSaveTime();
+		this.updateTitle();
+		this.addToRecent(this.fileName);
+	}
+
+	loadModel() {
+		do_global_log("Electron: load model");
+		const { dialog } = require('electron').remote
+		console.log("dialog ", dialog)
+		let filenameArray = dialog.showOpenDialog({ properties: ['openFile'] })
+		console.log("filenameArray", filenameArray)
+		if (filenameArray.length > 0) {
+			this.loadFromFile(filenameArray[0])
+		}
+	}
+	loadFromFile(fileName) {
+		var fs = require('fs')
+		var resolve = require('path').resolve;
+		var absoluteFileName = resolve(fileName);
+
+
+		fs.readFile(fileName, 'utf8', (err, data) => {
+			if (err) {
+				return console.error(err);
+			}
+			console.error(fs);
+			this.fileName = absoluteFileName;
+			this.loadModelData(data);
+			this.updateTitle();
+			this.addToRecent(this.fileName);
+		});
+	}
+}
+
 class NwFileManager extends BaseFileManager {
 	constructor() {
 		super();
@@ -311,6 +412,7 @@ class NwFileManager extends BaseFileManager {
 	ready() {
 		super.ready();
 		// Prepare model loader
+
 		this.modelLoaderInput = document.body.appendChild(document.createElement("input"));
 		this.modelLoaderInput.className = "modelLoaderInput";
 		this.modelLoaderInput.addEventListener('change', (event) => {
@@ -450,6 +552,9 @@ class NwFileManager extends BaseFileManager {
 }
 
 class BaseEnvironment {
+	getName() {
+		return "base";
+	}
 	constructor() {
 		this.reloadingStarted = false;
 	}
@@ -465,7 +570,12 @@ class BaseEnvironment {
 }
 
 class WebEnvironment extends BaseEnvironment {
+	getName() {
+		return "web";
+	}
 	ready() {
+		return null;
+		/*
 		window.onbeforeunload = (e) => {
 			if (this.reloadingStarted) {
 				// We never want to complain if we have initialized a reload
@@ -478,13 +588,42 @@ class WebEnvironment extends BaseEnvironment {
 				return null;
 			}
 		};
+		*/
 	}
 	getFileManager() {
 		return new WebFileManager();
 	}
 }
 
+class ElectronEnvironment extends BaseEnvironment {
+	getName() {
+		return "electron";
+	}
+	ready() {
+		const { ipcRenderer } = require('electron')
+		ipcRenderer.on('try-to-close-message', (event, arg) => {
+			quitQuestion()
+		})
+	}
+	getFileManager() {
+		return new ElectronFileManager();
+	}
+	closeWindow() {
+		const { ipcRenderer } = require('electron')
+		ipcRenderer.send('destroy-message', 'ping')
+	}
+}
+
+
 class NwEnvironment extends BaseEnvironment {
+	getName() {
+		return "nwjs";
+	}
+	constructor() {
+		super()
+		nwController.init();
+		nwController.maximize();
+	}
 	ready() {
 		$("#btn_zoom_in").click(function () {
 			NwZoomController.zoomIn();
@@ -520,19 +659,44 @@ class NwEnvironment extends BaseEnvironment {
 	getFileManager() {
 		return new NwFileManager();
 	}
+	closeWindow() {
+		nwjsWindow.close(true);
+	}
+}
+
+function isRunningElectron() {
+	// https://github.com/electron/electron/issues/2288
+	if (typeof process !== "undefined") {
+		if (typeof process.versions['electron'] !== "undefined") {
+			return true;
+		}
+	}
+	return false;
+}
+
+function isRunningNwjs() {
+	// https://stackoverflow.com/questions/31968355/detect-if-web-app-is-running-in-nwjs
+	try {
+		return (typeof require('nw.gui') !== "undefined");
+	} catch (e) {
+		return false;
+	}
 }
 
 function detectEnvironment() {
-	// Check if we run in node-webkit or in a browser 
-	if (nwController.isNwActive()) {
-		console.log("NW is active")
-		return new NwEnvironment();
+	if (isRunningElectron()) {
+		return new ElectronEnvironment()
+	}
+	else if (isRunningNwjs()) {
+		return new NwEnvironment()
 	} else {
-		console.log("NW is not active")
-		return new WebEnvironment();
+		return new WebEnvironment()
 	}
 }
 
 // Set global variable for environment and fileManager 
 var environment = detectEnvironment();
 var fileManager = environment.getFileManager();
+
+// Uncomment for debugging
+// alert("Running in environment " + environment.getName())
